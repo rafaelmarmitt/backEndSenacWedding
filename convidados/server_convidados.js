@@ -49,9 +49,9 @@ app.post('/convidados', async (req, res) => {
 
         conn = await conn.mysql.createConnection(dbConfig);
         await conn.beginTransaction();
-        const [{ insertId }] = await conn.execute('INSERT INTO convidados (nome, sobrenome, cpf, telefone, email, numero_mesa) VALUES (?,?,?,?,?,?)', [nome, sobrenome, cpf || null, telefone || null, email || null, numero_mesa]);
+        const [{ insertId }] = await conn.execute('INSERT INTO convidados (nome, sobrenome, cpf, telefone, email, numero_mesa) VALUES (?,?,?,?,?,?)', [nome, sobrenome, cpf||null, telefone||null, email||null, numero_mesa]);
 
-        if (acompanhantes?.lenght) for (let a of acompanhantes)
+        if (acompanhantes ?.lenght) for (let a of acompanhantes)
             await conn.execute('INSERT INTO acompanhantes(nome, sobrenome, fk_convidado) VALUES (?,?,?)', [a.nome, a.sobrenome, insertId]
             );
         await conn.commit();
