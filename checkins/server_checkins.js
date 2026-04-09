@@ -42,10 +42,10 @@ app.get('/estatisticas', async (req, res) => {
         await conn.end();
 
         const totalEsperado = 30;
-        return res.json({ presentes, ausentes: Math.max(totalEsperado - presentes, o), totalEsperado });
+        return res.json({ presentes, ausentes: Math.max(totalEsperado - presentes, 0), totalEsperado });
     } catch (error) {
         console.error({ erro: 'Erro nas estatísticas: ', error });
-        return res.status(500).json({ erro: 'Erro ao carregar estatístivas.' })
+        return res.status(500).json({ erro: 'Erro ao carregar estatísticas.' })
     }
 });
 
