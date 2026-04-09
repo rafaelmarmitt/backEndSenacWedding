@@ -21,10 +21,10 @@ app.get('/convidados', async (req, res) => {
         const termo = req.query.busca ? `%${req.query.busca}` : null;
 
         const querry = termo
-            ? 'SELECT c.*, EXISTS(SELECT 1 FROM db_checkins.checkins ch WHERE dh.id_convidado = c.id=cpnvidado) AS ja_entrou FROM convidados c WHERE c.nome LIKE ? OR c.sobrenome LIKE ? OR c.cpf LIKE ? ORDER BY c.nome ASC' :
-            'SELECT c.*, EXISTS(SELECT 1 FROM db_checkins.checkins ch WHERE ch.id_convidado = c.id_convidado) AS ja_entrou FROM convidados c ORDER BY c.nome ASC';
+            ? 'SELECT c.*, EXISTS(SELECT 1 FROM db_checkins.checkins ch WHERE ch.id_convidado = c.id=cpnvidado) AS ja_entrou FROM convidados c WHERE c.nome LIKE ? OR c.sobrenome LIKE ? OR c.cpf LIKE ? ORDER BY c.nome ASC' 
+            :'SELECT c.*, EXISTS(SELECT 1 FROM db_checkins.checkins ch WHERE ch.id_convidado = c.id_convidado) AS ja_entrou FROM convidados c ORDER BY c.nome ASC';
 
-        const [convidados] = await conn.execute(query, termo ? [termo, termo, termo] : []);
+        const [convidados] = await conn.execute(querry, termo ? [termo, termo, termo] : []);
         const convidadosCompletos = [];
 
         for (let c of convidados) {
