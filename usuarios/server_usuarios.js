@@ -1,0 +1,77 @@
+require('dotenv').config();
+const express = require('express');
+cors = require('cors');
+mysql = require('mysql2/promise');
+bcrypt = require('bcrypt');
+jwt = require('jsonwebtoken');
+
+const app = express();
+
+app.use(cors(), express.json());
+
+const dbConfig = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT
+};
+
+//função de auto-seeding
+async function inicializarBancoDeDados() {
+    try {
+        const conn = await mysql.createConnection(dbConfig);
+        const [[{ total }]] = await conn.execute('SELECT COUNT(*) as total FROM usuarios');
+
+        if (total === 0) {
+            console.log('[Auto-Seed] Tabela vazia, criando usuários padrão');
+            const hash = await bcrypt.hash('123456', 10);
+            await conn.execute('INSERT INTO usuarios (nome, cpf, email, senha, perfil) VALUES (?,?,?,?,?),(?,?,?,?,?)', ['Admin', '111.111.111-11', 'admin@senac.com', '$2a$10$5YPyyrME7chhT3AXJRhsGe2zCUenQeeeeBUl2itkArY.HuN3QDNjC', 'Admin',
+                'Cerimonialista', '222.222.222-22', 'crm@senac.com', '$2a$10$5YPyyrME7chhT3AXJRhsGe2zCUenQeeeeBUl2itkArY.HuN3QDNjC', 'Cerimonialista']);
+            console.log('[Auto-Seed] Usuários criados! Senha: 123456');
+        };
+        await conn.end();
+    } catch (error) {
+        console.error('[Auto-Seed] erro ao verificar banco de dados', error.message);
+    }
+}
+
+// endpoint de login
+
+app.post('/login', async (req, res) => {
+
+    const { email, senha } = req.body;
+    if (!email || !senha) return res.status(400).json({ erro: 'Email e sneha são obrigatórios' });
+
+    try {
+        const conn = await mysql.createConnection(dbConfig);
+        const [[usuario]] = await conn.execute('SELECT * FROM usuarios WHERE email=?', [email]);
+        await conn.end();
+
+        if (!usuario || !(await bcrypt.compare(senha, usuario.senha))) return res.status(401).json({ erro: 'Credenciais inválidas!' })
+
+        const token = jwt.sign({
+            id_usuario: usuario.id_usuario,
+            perfil: usuario.prefil,
+            nome: usuario.nome
+        },
+            process.env.JWT_SECRET || 'senhaSecreta',
+            { expiresIn: '8h' });
+        return res.json({
+            mensagem: 'Login efetuado com sucesso!',
+            token, usuario: {
+                id: usuario.id_usuario,
+                nome: usuario.nome,
+                perfil: usuario.prefil
+            }
+        });
+    } catch(error) {
+        console.error('Erro ao efetuar login:', error);
+        return res.status(500).json({erro:'Erro interno no servidor'});
+    }
+});
+
+inicializarBancoDeDados().then(() => 
+    app.listen(process.env.PORT || 3001, () => 
+    console.log(`[Usuários] Servidor rodando na porta ${process.env.PORT || 3001}`)
+));
