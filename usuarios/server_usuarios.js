@@ -65,13 +65,13 @@ app.post('/login', async (req, res) => {
                 perfil: usuario.prefil
             }
         });
-    } catch(error) {
+    } catch (error) {
         console.error('Erro ao efetuar login:', error);
-        return res.status(500).json({erro:'Erro interno no servidor'});
+        return res.status(500).json({ erro: 'Erro interno no servidor' });
     }
 });
 
-inicializarBancoDeDados().then(() => 
-    app.listen(process.env.PORT || 3001, () => 
-    console.log(`[Usuários] Servidor rodando na porta ${process.env.PORT || 3001}`)
-));
+inicializarBancoDeDados().then(() =>
+    app.listen(process.env.PORT || 3001, () =>
+        console.log(`[Usuários] Servidor rodando na porta ${process.env.PORT || 3001}`)
+    ));
